@@ -17,6 +17,7 @@ class UserRegister(ListCreateAPIView):
     serializer_class = Userserializer
 
 class CustomerRegister(ListCreateAPIView):
+
     queryset = User.objects.filter(role="customer").order_by("-created_at")
     serializer_class = Customerserializer
 
@@ -28,6 +29,7 @@ class CustomerRegister(ListCreateAPIView):
             permission_classes = [permissions.AllowAny]
 
         return [permission() for permission in permission_classes]
+
 
 
 class CustomerLoginView(GenericAPIView):
@@ -48,8 +50,10 @@ class CustomerLoginView(GenericAPIView):
             {
                 "access_token": serializer.validated_data["access"],
                 "refresh_token": serializer.validated_data["refresh"],
+                "user_id": user.id,
                 "username": user.username,
                 "email": user.email,
+                "role": role,
             },
             status=status.HTTP_200_OK,
         )
@@ -100,14 +104,16 @@ class ResearcherLoginView(GenericAPIView):
 
         # Ensure the user is a researcher
         if role.lower() != "researcher":
-            return Response({"error": "Access denied. Only customers can log in."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "Access denied. Only Researchers can log in."}, status=status.HTTP_403_FORBIDDEN)
 
         return Response(
             {
                 "access_token": serializer.validated_data["access"],
                 "refresh_token": serializer.validated_data["refresh"],
+                "user_id": user.id,
                 "username": user.username,
                 "email": user.email,
+                "role": role,
             },
             status=status.HTTP_200_OK,
         )
