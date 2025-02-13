@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from . models import User
+from . models import User,Programs
 from django.contrib.auth import authenticate
 from rest_framework.validators import UniqueValidator
 from rest_framework.exceptions import AuthenticationFailed
@@ -261,3 +261,8 @@ class CustomAuthTokenSerializer(serializers.Serializer):
             "user": user,
         }
 
+
+class ProgramSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Programs
+        fields = '__all__'

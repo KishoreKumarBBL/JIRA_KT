@@ -1,0 +1,15 @@
+jg2mc87wvp Tensura DB password for serpico
+
+etsk kfue bzhc hhco - App password for Django email implementation
+
+#Syncfusion.Server.Commands.Utility.exe reset -u 'kishorekumar.b@bugbusterslabs.com' -p 'Kishore2002@2025'
+
+YzMwMjkwMjktNDJkMi00MzUwLWI5MmMtOGNjMTNlZGE3OGNm
+
+cke5t5-3d67448d5698a486dc0b599a0f770383
+
+smtp.office365.com
+
+npm create vite@latest products_frontend --template react
+
+npm create vite@latest Jira_frontend --template react

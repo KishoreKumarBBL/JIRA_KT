@@ -101,42 +101,21 @@ class Programs(models.Model):
         null=True,
         blank=True,
     )
-    program_type = models.CharField(max_length=250)
-    program_package = models.CharField(max_length=250)
+    
     program_title = models.CharField(max_length=250)
     project_description = models.TextField()
-    private_program = models.CharField(max_length=250, null=True, blank=True)
+
     program_attachments = models.FileField(
         upload_to="program/attachments/",
         validators=[validate_file_size],
         blank=True,
         null=True,
     )
-    project_tags = models.CharField(max_length=250, null=True, blank=True)
-    scope_title = models.CharField(max_length=250, null=True, blank=True)
     scope_items_url1 = models.CharField(max_length=250, null=True, blank=True)
-    out_Of_scope_item_url1 = models.CharField(max_length=250, null=True, blank=True)
     severity = models.CharField(max_length=50)
-    expected_vulnerability_types = models.TextField(null=True, blank=True)
-    p1_reward_amt = models.FloatField(null=True, blank=True)
     maximun_budget = models.FloatField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    testing_allowed = models.CharField(max_length=250)
-    language_framworks = models.CharField(max_length=250)
-    asset_environments = models.CharField(max_length=250)
-    taxonomy_doc1 = models.FileField(
-        upload_to="program/taxonomy1/",
-        validators=[validate_file_size],
-        null=True,
-        blank=True,
-    )
-    upload_doc1 = models.FileField(
-        upload_to="program/doc1/",
-        validators=[validate_file_size],
-        null=True,
-        blank=True,
-    )
     program_status = models.CharField(
         max_length=10, choices=PROGRAM_STATUS_CHOICES, blank=True, null=True
     )

@@ -42,7 +42,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('programs.urls')),
-    path('',include('submissions.urls')),
+    path('api/v1/',include('submissions.urls')),
     path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', schema_view.with_ui('swagger', cache_timeout=0), name='schema'),

@@ -2,8 +2,8 @@
 # from django.http import HttpResponseForbidden
 from rest_framework.generics import ListCreateAPIView,RetrieveUpdateDestroyAPIView,GenericAPIView
 from rest_framework.response import Response
-from.serializers import Customerserializer,Userserializer,Researcherserializer,CustomAuthTokenSerializer
-from.models import User
+from.serializers import Customerserializer,Userserializer,Researcherserializer,CustomAuthTokenSerializer,ProgramSerializer
+from.models import User,Programs
 from .permissions import IsCustomer,IsResearcher
 from rest_framework import permissions
 from rest_framework import status
@@ -136,3 +136,8 @@ class ResearcherUpdateView(RetrieveUpdateDestroyAPIView):
         serializer.save()  # Save the instance
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreateProgram(ListCreateAPIView):
+    serializer_class= ProgramSerializer
+    queryset = Programs.objects.all()
