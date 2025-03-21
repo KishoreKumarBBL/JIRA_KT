@@ -3,30 +3,33 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
-from rest_framework import viewsets
+# from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+# from rest_framework.permissions import IsCustomer
 
 from rest_framework.exceptions import ValidationError
 
 from .models import JiraUser, JiraProgramIssue, JiraIssueConfigs, JiraProgramMapper
-from usermanagement.models import User
-from submission.models import Submission
-from program.models import Programs
+from programs.models import User
+from submissions.models import Submission
+from programs.models import Programs
 
 from .serializers import JiraIssueConfigsGetSerializer, JiraIssueConfigSerializer, JiraMapIdSerializer, JiraGetProjectSerializer, JiraNotificationSerializer, JiraIssueSerializer, JiraCreateProjectSerializer, JiraMapProgramProjectSerializer, JiraIssueConfigSerializer, JiraCommentSerialzier, JiraUserSerializer, JiraProgramMapperSerializer
-from .utils import get_cloud_object, templates
+from .jira_services import get_cloud_object, templates
 import json
 import random
 import string
-from rest_framework.pagination import PageNumberPagination
+# from rest_framework.pagination import PageNumberPagination
 from rest_framework import generics
-from bugbusterslabs.custompagination import CustomPageNumberPagination
+# from bugbusterslabs.custompagination import CustomPageNumberPagination
+
+from programs.permissions import IsCustomer
+
 
 
 class JiraOAuthView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def get(self, request):
         authorization_url = (
@@ -43,7 +46,7 @@ class JiraOAuthView(APIView):
 
 
 class JiraOAuthCallbackView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         code = request.GET.get('code')
@@ -106,7 +109,7 @@ class JiraOAuthCallbackView(APIView):
 
 
 class JiraOAuthRefreshToken(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         serializer = JiraGetProjectSerializer(data=request.data)
@@ -144,7 +147,7 @@ class JiraOAuthRefreshToken(APIView):
 
 
 class JiraGetProjects(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     """
     API endpoint to fetch projects under the given cloud unit using the latest token.
@@ -187,78 +190,11 @@ class JiraGetProjects(APIView):
 
         return Response(response.json(), status=response.status_code)
 
-
-class JiraGetNotificationEvents(APIView):
-    permission_classes = [IsAuthenticated]
-
-    """
-    API endpoint to fetch notification events for a specific cloud unit.
-    """
-
-    def post(self, request):
-        serializer = JiraGetProjectSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        cloud_name = serializer.validated_data.get('cloud_name')
-        cloud_obj = get_cloud_object(cloud_name)
-
-        url = f"https://api.atlassian.com/ex/jira/{cloud_obj.cloudId}/rest/api/3/events"
-        headers = {
-            "Accept": "application/json",
-            "Authorization": f'Bearer {cloud_obj.access_token}'
-        }
-
-        response = requests.get(url, headers=headers)
-
-        return Response(response.json(), status=response.status_code)
-
-
-class JiraCreateNotificationScheme(APIView):
-    permission_classes = [IsAuthenticated]
-
-    """
-    API endpoint to create a notification scheme for a specific event in a cloud unit.
-    """
-
-    def post(self, request):
-        serializer = JiraNotificationSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
-        cloud_obj = get_cloud_object(data['cloud_name'])
-
-        url = f"https://api.atlassian.com/ex/jira/{cloud_obj.cloudId}/rest/api/3/notificationscheme"
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {cloud_obj.access_token}"
-        }
-
-        payload = json.dumps({
-            "description": data['notificatin_description'],
-            "name": data['notification_name'],
-            "notificationSchemeEvents": [
-                {
-                    "event": {"id": data['event_id']},
-                    "notifications": [{"notificationType": data['notification_type']}]
-                }
-            ]
-        })
-
-        response = requests.post(url, headers=headers, data=payload)
-
-        return Response(response.json(), status=response.status_code)
-
-
 class JiraRaiseTicket(APIView):
     """
     API endpoint to raise a ticket in a specific project of a cloud unit.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         serializer = JiraIssueSerializer(data=request.data)
@@ -319,7 +255,7 @@ class JiraRaiseTicket(APIView):
 
 
 class JiraGetProjectCategories(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     """
     API endpoint to fetch project categories defined by the user for a specific cloud unit.
@@ -345,42 +281,8 @@ class JiraGetProjectCategories(APIView):
         return Response(response.json(), status=response.status_code)
 
 
-class JiraGetAllLeads(APIView):
-    permission_classes = [IsAuthenticated]
-
-    """
-    API endpoint to fetch all leads for projects in a specific cloud unit.
-    """
-
-    def post(self, request):
-        serializer = JiraGetProjectSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        name = serializer.validated_data.get('cloud_name')
-        cloudObj = get_cloud_object(name)
-
-        url = f"https://api.atlassian.com/ex/jira/{cloudObj.cloudId}/rest/api/3/project?expand=lead"
-        headers = {'Authorization': f'Bearer {cloudObj.access_token}'}
-
-        response = requests.get(url, headers=headers)
-        response_data = response.json()
-
-        allLeads = {}
-        for project in response_data:
-            lead = project.get('lead')
-            if lead and lead['accountId'] not in allLeads:
-                allLeads[lead['accountId']] = {
-                    "profile_url": lead['self'],
-                    "lead_name": lead['displayName']
-                }
-
-        return Response(allLeads, status=status.HTTP_200_OK)
-
-
 class JiraGetProjectType(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     """
     API endpoint to fetch project types defined by Atlassian.
@@ -402,50 +304,8 @@ class JiraGetProjectType(APIView):
 
         return Response(project_keys, status=response.status_code)
 
-
-class JiraCreateProject(APIView):
-    """
-    API endpoint to create a project for a specific cloud unit.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = JiraCreateProjectSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
-        cloud_obj = get_cloud_object(data['cloud_name'])
-
-        url = f"https://api.atlassian.com/ex/jira/{cloud_obj.cloudId}/rest/api/3/project"
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            'Authorization': f'Bearer {cloud_obj.access_token}'
-        }
-
-        payload = json.dumps({
-            "assigneeType": "PROJECT_LEAD",
-            "avatarId": 10200,
-            "categoryId": data['category_id'],
-            "description": data['description'],
-            "key": ''.join(random.choice(string.ascii_uppercase) for _ in range(6)),
-            "leadAccountId": data['lead_account_id'],
-            "name": data['project_name'],
-            "notificationScheme": data['notification_scheme'],
-            "projectTemplateKey": templates[data['project_type']][0],
-            "projectTypeKey": data['project_type'],
-            "url": "http://atlassian.com"
-        })
-
-        response = requests.post(url, headers=headers, data=payload)
-
-        return Response(response.json(), status=response.status_code)
-
-
 class JiraMapProjectProgram(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         serializer = JiraMapProgramProjectSerializer(data=request.data)
@@ -481,7 +341,7 @@ class JiraMapProjectProgram(APIView):
 
 
 class JiraSetupIssueConfigs(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         serializer = JiraIssueConfigSerializer(data=request.data)
@@ -514,7 +374,7 @@ class JiraSetupIssueConfigs(APIView):
 
 
 class JiraRegisterCommentToIssue(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def post(self, request):
         serializer = JiraCommentSerialzier(data=request.data)
@@ -569,8 +429,8 @@ class JiraRegisterCommentToIssue(APIView):
 
 
 class JiraGetAllInstances(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPageNumberPagination
+    permission_classes = [IsCustomer]
+    # pagination_class = CustomPageNumberPagination
     serializer_class = JiraUserSerializer
     
     def list(self, request, *args, **kwargs):
@@ -604,7 +464,7 @@ class JiraGetAllInstances(generics.ListCreateAPIView):
 
 
 class JiraShutOfInstance(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def delete(self, request, cloudId=None):
         queryset = JiraUser.objects.filter(is_deleted=False, name=cloudId)
@@ -614,10 +474,10 @@ class JiraShutOfInstance(APIView):
 
 
 class JiraGetAllMappedProjects(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
     field_error = {"error": "field error"}
     serializer_class = JiraProgramMapperSerializer
-    pagination_class = CustomPageNumberPagination
+    # pagination_class = CustomPageNumberPagination
 
     def list(self, request, *args, **kwargs):
         filters = {"user_id": request.user, "is_deleted": False}
@@ -648,7 +508,7 @@ class JiraGetAllMappedProjects(generics.ListCreateAPIView):
 
 
 class JiraUserDelete(generics.DestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
     field_error = {"error": "field error"}
     queryset = JiraProgramMapper.objects.filter(is_deleted=False)
     serializer_class = JiraProgramMapperSerializer
@@ -664,7 +524,7 @@ class JiraUserDelete(generics.DestroyAPIView):
 
 
 class JiraGetMappedProjects(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def get(self, request, *args, **kwargs):
         project_name = request.GET.get('project_name')
@@ -678,7 +538,7 @@ class JiraGetMappedProjects(APIView):
 
 
 class JiraGetIssueConfig(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
 
     def get(self, request, *args, **kwargs):
         # Validate request data using the serializer

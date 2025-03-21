@@ -4,8 +4,8 @@ import json
 from .utils import get_cloud_object, templates
 from rest_framework import status
 import requests
-from submission.models import Submission
-from program.models import Programs
+from submissions.models import Submission
+from programs.models import Programs
 
 
 def add_jira_comment(submission_id, description, cloud_name):
