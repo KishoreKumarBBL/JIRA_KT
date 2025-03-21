@@ -44,11 +44,6 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Login to Azure CLI
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}  # Ensure this secret is set in GitHub Actions
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
