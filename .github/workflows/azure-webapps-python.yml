@@ -47,7 +47,7 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: bugbusterktproject
+          app-name: userdatesting
           slot-name: staging  # Change this if using production
           publish-profile: ${{ secrets.AzureAppService_PublishProfile }}
           images: bugbustersktproject.azurecr.io/${{ secrets.AzureAppService_ContainerUsername }}/newbug-web:${{ github.sha }}
