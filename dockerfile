@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /ktproject
  
 # Copy requirements file to the container
-COPY requirements.txt .
+COPY Requirements.txt .
  
 # Install dependencies
 RUN apt-get update && \
@@ -13,7 +13,7 @@ apt-get install -y --no-install-recommends \
     python3-pip build-essential libpq-dev libssl-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
  
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r Requirements.txt
 # Copy the rest of the application code to the container
 COPY . .
  
@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 8000
  
 # Run the Django development server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", 'cms.wsgi:application']
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", 'jira.wsgi:application']
