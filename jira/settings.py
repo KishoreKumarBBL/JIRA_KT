@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'programs',
     "corsheaders",
     "submissions",
+    "jira_integration",
     
 ]
 
