@@ -6,7 +6,7 @@ from .views import JiraOAuthView, JiraOAuthCallbackView, JiraUserDelete
 urlpatterns = [
     path("jira/auth/login", JiraOAuthView.as_view(), name="jira_auth"),
     path("jira/auth/refresh-token", views.JiraOAuthRefreshToken.as_view()),
-    path("jira/callback", JiraOAuthCallbackView.as_view(), name="jira_callback"),
+    path("jira/oauth/callback/", JiraOAuthCallbackView.as_view(), name="jira_callback"),
     path("jira/list-project", views.JiraGetProjects.as_view(), name="list-project"),
     path("jira/raise-issue", views.JiraRaiseTicket.as_view(), name="raise-issue"),
     path(
