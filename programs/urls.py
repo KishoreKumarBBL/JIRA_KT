@@ -8,6 +8,7 @@ from .views import (
     ResearcherLoginView,
     ResearcherUpdateView,
     CreateProgram,
+    ResearcherProgram
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("researcher/login/", ResearcherLoginView.as_view(), name="Register"),
     path("researcher/<uuid:id>/", ResearcherUpdateView.as_view(), name="Register"),
     path("program/",CreateProgram.as_view(),name='Program'),
+    path("program/researcher/",ResearcherProgram.as_view(), name="Programs"),
 ]

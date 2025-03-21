@@ -141,3 +141,8 @@ class ResearcherUpdateView(RetrieveUpdateDestroyAPIView):
 class CreateProgram(ListCreateAPIView):
     serializer_class= ProgramSerializer
     queryset = Programs.objects.all()
+
+
+class ResearcherProgram(ListCreateAPIView):
+    serializer_class = ProgramSerializer
+    queryset = Programs.objects.all()
