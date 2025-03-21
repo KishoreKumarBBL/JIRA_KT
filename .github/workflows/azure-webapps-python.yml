@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: bugbustersktproject.azurecr.io/${{ secrets.AzureAppService_ContainerUsername }}/Newbug-web:${{ github.sha }}
+          tags: bugbustersktproject.azurecr.io/${{ secrets.AzureAppService_ContainerUsername }}/newbug-web:${{ github.sha }}
           file: ./Dockerfile  # Change this if Dockerfile is in a subdirectory
 
   deploy:
@@ -55,5 +55,5 @@ jobs:
           app-name: bugbusterktproject
           slot-name: staging  # Change this if using production
           publish-profile: ${{ secrets.AzureAppService_PublishProfile }}
-          images: bugbustersktproject.azurecr.io/${{ secrets.AzureAppService_ContainerUsername }}/Newbug-web:${{ github.sha }}
+          images: bugbustersktproject.azurecr.io/${{ secrets.AzureAppService_ContainerUsername }}/newbug-web:${{ github.sha }}
 
